@@ -86,6 +86,7 @@ def existsInTable(event_id):
 def tweet_events(events):
     for event in events:
         post_text = create_post_txt(event)
+        #exit()
         result = post_tweet(post_text)
         print('---------')
         if result:
@@ -93,16 +94,50 @@ def tweet_events(events):
         time.sleep(1)
 
 def create_post_txt(event):
-    # 同日開催ならば end の方には日付は表記しない
-    started_at = datetime.datetime.strptime(event['started_at'][:-6], "%Y-%m-%dT%H:%M:%S")
-    ended_at = datetime.datetime.strptime(event['ended_at'][:-6], "%Y-%m-%dT%H:%M:%S")
 
-    start = started_at.strftime("%m/%d %H:%M")
-    end = ended_at.strftime("%m/%d %H:%M")
-    if started_at.strftime("%d") == ended_at.strftime("%d"):
-        end = ended_at.strftime("%H:%M")
+    # タイトル(必須)
+    post_text = event['title']
 
-    post_text = f"{event['title']}\n{start}～{end}\n{event['address']}\n{event['event_url']}"
+    # 期間
+    start = ""
+    end = ""
+    try:
+        fmt = "%Y-%m-%dT%H:%M:%S"
+        started_at = datetime.datetime.strptime(event['started_at'][:-6], fmt)
+        ended_at = datetime.datetime.strptime(event['ended_at'][:-6], fmt)
+
+        # 月と日は0埋めしない
+        fmt = "%-m/%-d %H:%M"
+        start = started_at.strftime(fmt)
+        end = ended_at.strftime(fmt)
+
+        # 同日開催ならば end の方には日付は表記しない
+        if started_at.strftime("%d") == ended_at.strftime("%d"):
+            end = ended_at.strftime("%H:%M")
+    except Exception as e:
+        print(f"Exception : {e}")
+
+    if start and end:
+        post_text += f"\n{start}～{end}"
+
+    # 開催会場
+    place = event['place']
+    if place:
+        post_text += '\n' + place
+
+    # 開催場所
+    address = event['address']
+    if address:
+        post_text += '\n' + address
+
+    # ハッシュタグ
+    hash_tag = event['hash_tag']
+    if hash_tag:
+        post_text += '\n#' + hash_tag
+
+    # connpass.com 上のURL
+    post_text += '\n' + event['event_url']
+
     print(post_text)
     return post_text
 
