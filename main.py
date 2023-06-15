@@ -26,10 +26,15 @@ access_token = ""
 access_token_secret = ""
 
 def search_events():
-    response = requests.get(f"{ENDPOINT}?start={start}&count={count}&keyword_or={keyword_or}&order={order}")
+    url = f"{ENDPOINT}?start={start}&count={count}&keyword_or={keyword_or}&order={order}"
+    headers = {
+        'User-Agent':'Mozilla/5.0'
+    }
+    response = requests.get(url=url, headers=headers)
     status_code=response.status_code
-    print(f"status_code={status_code}")
     if status_code != 200:
+        print(f"status_code={status_code} url={url}")
+        print(response.text)
         print("exit")
         exit()
     results = json.loads(response.text)
